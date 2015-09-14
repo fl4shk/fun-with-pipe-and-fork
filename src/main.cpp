@@ -24,8 +24,8 @@ class pipe_fd_arr
 public:		// variables
 	static constexpr u32 output_index = 0, input_index = 1;
 	
-	static constexpr u32 pipe_fd_arr_size = 2;
-	array< int, pipe_fd_arr_size > the_array;
+	static constexpr u32 arr_size = 2;
+	array< int, arr_size > the_array;
 	
 public:		// functions
 	inline void make_pipe()
