@@ -1,0 +1,10 @@
+syn keyword CTagsFunction make_pipe child_main parent_main main
+
+" Matches for file main.cpp:
+if (has_key(b:TagHighlightPrivate, "NormalisedPath") && b:TagHighlightPrivate["NormalisedPath"] == "main.cpp") || TagHighlight#Option#GetOption("IgnoreFileScope")
+	syn keyword CTagsMember input_index output_index pipe_fd_arr_size the_array
+	syn keyword CTagsFunction child_main parent_main
+	syn keyword CTagsType s32 s64 uint s8 u16 u32 s16 u64 u8
+	syn keyword CTagsClass pipe_fd_arr
+	
+endif
