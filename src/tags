@@ -1,0 +1,31 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+arr_size	main.cpp	/^	static constexpr u32 arr_size = 2;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+child_main	main.cpp	/^void child_main( pipe_fd_arr& parent_write_fd_arr, $/;"	kind:f	signature:( pipe_fd_arr& parent_write_fd_arr, pipe_fd_arr& parent_read_fd_arr )
+child_main	main.cpp	/^void child_main( pipe_fd_arr& parent_write_fd_arr, $/;"	kind:p	file:	signature:( pipe_fd_arr& parent_write_fd_arr, pipe_fd_arr& parent_read_fd_arr )
+input_index	main.cpp	/^	static constexpr u32 output_index = 0, input_index = 1;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+main	main.cpp	/^int main( int argc, char** argv )$/;"	kind:f	signature:( int argc, char** argv )
+make_pipe	main.cpp	/^	inline void make_pipe()$/;"	kind:f	class:pipe_fd_arr	access:public	signature:()
+output_index	main.cpp	/^	static constexpr u32 output_index = 0, input_index = 1;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+parent_main	main.cpp	/^void parent_main( pipe_fd_arr& parent_write_fd_arr,$/;"	kind:f	signature:( pipe_fd_arr& parent_write_fd_arr, pipe_fd_arr& parent_read_fd_arr )
+parent_main	main.cpp	/^void parent_main( pipe_fd_arr& parent_write_fd_arr,$/;"	kind:p	file:	signature:( pipe_fd_arr& parent_write_fd_arr, pipe_fd_arr& parent_read_fd_arr )
+pipe_fd_arr	main.cpp	/^class pipe_fd_arr$/;"	kind:c	file:
+pipe_fd_arr::arr_size	main.cpp	/^	static constexpr u32 arr_size = 2;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+pipe_fd_arr::input_index	main.cpp	/^	static constexpr u32 output_index = 0, input_index = 1;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+pipe_fd_arr::make_pipe	main.cpp	/^	inline void make_pipe()$/;"	kind:f	class:pipe_fd_arr	access:public	signature:()
+pipe_fd_arr::output_index	main.cpp	/^	static constexpr u32 output_index = 0, input_index = 1;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+pipe_fd_arr::the_array	main.cpp	/^	array< int, arr_size > the_array;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+s16	main.cpp	/^typedef uint16_t u16; typedef int16_t s16;$/;"	kind:t	file:
+s32	main.cpp	/^typedef uint32_t u32; typedef int32_t s32;$/;"	kind:t	file:
+s64	main.cpp	/^typedef uint64_t u64; typedef int64_t s64;$/;"	kind:t	file:
+s8	main.cpp	/^typedef uint8_t u8; typedef int8_t s8;$/;"	kind:t	file:
+the_array	main.cpp	/^	array< int, arr_size > the_array;$/;"	kind:m	class:pipe_fd_arr	file:	access:public
+u16	main.cpp	/^typedef uint16_t u16; typedef int16_t s16;$/;"	kind:t	file:
+u32	main.cpp	/^typedef uint32_t u32; typedef int32_t s32;$/;"	kind:t	file:
+u64	main.cpp	/^typedef uint64_t u64; typedef int64_t s64;$/;"	kind:t	file:
+u8	main.cpp	/^typedef uint8_t u8; typedef int8_t s8;$/;"	kind:t	file:
+uint	main.cpp	/^typedef unsigned int uint;$/;"	kind:t	file:
