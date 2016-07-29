@@ -1,0 +1,5 @@
+*.swp
+deps/*
+objs/*
+*.gdb_history*
+fun-with-pipe-and-fork
