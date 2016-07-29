@@ -1,31 +1,55 @@
 # Edit these variables if more directories are needed.  Order is C++, C, ASM, NASM.
 # Separate each entry by spaces.
-CXX_DIRS=src
-C_DIRS=src
-S_DIRS=src
+CXX_DIRS=$(CURDIR) 
+C_DIRS=$(CXX_DIRS) 
+S_DIRS=$(CXX_DIRS) 
 
 # NASM Source Directories
 # Note:  NS is a prefix for NASM in all cases
-NS_DIRS=$(CURDIR) 
+NS_DIRS=$(CXX_DIRS) 
 
 
 # This is likely specific to *nix.
 PROJ=$(shell basename $(CURDIR))
 
 
-CC=gcc
-CXX=g++
-AS=as
+PREFIX=
+CC=$(PREFIX)gcc
+CXX=$(PREFIX)g++
+AS=$(PREFIX)as
 NS=nasm
-LD=gcc
+LD=$(PREFIX)g++
 
 
-BASE_FLAGS=-masm=intel -Wall -O3 -march=native
+#DEBUG=yeah do debug
+
+#DEBUG_OPTIMIZATION_LEVEL=-O1
+DEBUG_OPTIMIZATION_LEVEL=-Og
+#DEBUG_OPTIMIZATION_LEVEL=-O2
+
+REGULAR_OPTIMIZATION_LEVEL=-O2
+#REGULAR_OPTIMIZATION_LEVEL=-O3
+
+
+ifdef DEBUG
+	DEBUG_FLAGS=-gdwarf-3 -g
+	
+	#BASE_FLAGS=-masm=intel -march=native -Wall $(DEBUG_OPTIMIZATION_LEVEL) -g
+	#BASE_FLAGS=-masm=intel -Wall $(DEBUG_OPTIMIZATION_LEVEL) -g
+	BASE_FLAGS=-Wall $(DEBUG_OPTIMIZATION_LEVEL) -g
+else
+	#BASE_FLAGS=-masm=intel -march=native -Wall $(REGULAR_OPTIMIZATION_LEVEL)
+	#BASE_FLAGS=-masm=intel -Wall $(REGULAR_OPTIMIZATION_LEVEL)
+	BASE_FLAGS=-Wall $(REGULAR_OPTIMIZATION_LEVEL)
+endif
+
+
 CXX_FLAGS=-std=c++14 $(BASE_FLAGS)
 C_FLAGS=-std=c11 $(BASE_FLAGS)
 S_FLAGS=-mnaked-reg -msyntax=intel
 NS_FLAGS=-f elf64
-LD_FLAGS=-lstdc++ -lm
+
+LD_FLAGS=-lm $(DEBUG_FLAGS)
 
 
 
@@ -65,9 +89,6 @@ OFILES_TEMP=$(CXX_OFILES_TEMP) $(C_OFILES_TEMP) $(S_OFILES_TEMP) $(NS_OFILES_TEM
 
 all : all_pre $(OFILES)
 	$(LD) $(OBJDIR)/*.o -o $(PROJ) $(LD_FLAGS)
-
-debug : all_pre $(OFILES)
-	$(LD) $(OBJDIR)/*.o -o $(PROJ) $(LD_FLAGS) -g
 
 all_objs : all_pre $(OFILES)
 	@#
