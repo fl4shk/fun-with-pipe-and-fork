@@ -1,135 +1,219 @@
-# Edit these variables if more directories are needed.  Order is C++, C, ASM, NASM.
+# These directories specify where source code files are located.
+# Edit these variables if more directories are needed.
 # Separate each entry by spaces.
-CXX_DIRS=$(CURDIR) 
-C_DIRS=$(CXX_DIRS) 
-S_DIRS=$(CXX_DIRS) 
+CXX_DIRS:=$(CURDIR) src
 
-# NASM Source Directories
-# Note:  NS is a prefix for NASM in all cases
-NS_DIRS=$(CXX_DIRS) 
+# End of source directories
 
 
-# This is likely specific to *nix.
-PROJ=$(shell basename $(CURDIR))
+# Note that this is only known to work with GCC, and is only intended as a
+# curiosity
+#DO_ARM:=yeah do arm
 
 
-PREFIX=
-CC=$(PREFIX)gcc
-CXX=$(PREFIX)g++
-AS=$(PREFIX)as
-NS=nasm
-LD=$(PREFIX)g++
+
+# Comment out or un-comment out the next line to enable debugging stuff to
+# be generated
+DEBUG:=yeah do debug
 
 
-#DEBUG=yeah do debug
 
-#DEBUG_OPTIMIZATION_LEVEL=-O1
-DEBUG_OPTIMIZATION_LEVEL=-Og
-#DEBUG_OPTIMIZATION_LEVEL=-O2
 
-REGULAR_OPTIMIZATION_LEVEL=-O2
-#REGULAR_OPTIMIZATION_LEVEL=-O3
+# Compiler and linker (they have a prefix inserted at the start if DO_ARM
+# is set)
+CXX:=g++
+LD:=$(CXX)
+
+INITIAL_BASE_FLAGS:=-Wall
+
+# Compiler and linker flags (note that some of them are potentially
+# expanded later depending on DEBUG and DO_ARM)
+CXX_FLAGS:=-std=c++17 $(INITIAL_BASE_FLAGS)
+LD_FLAGS:=-lm
+
+
+
+
+
+DEBUG_OPTIMIZATION_LEVEL:=-O0
+#DEBUG_OPTIMIZATION_LEVEL:=-Og
+#DEBUG_OPTIMIZATION_LEVEL:=-O2
+#DEBUG_OPTIMIZATION_LEVEL:=-O3
+
+#REGULAR_OPTIMIZATION_LEVEL:=-O1
+REGULAR_OPTIMIZATION_LEVEL:=-O2
+#REGULAR_OPTIMIZATION_LEVEL:=-O3
+
+
+ALWAYS_DEBUG_SUFFIX:=_debug
+ALWAYS_DO_ARM_SUFFIX:=_arm
 
 
 ifdef DEBUG
-	DEBUG_FLAGS=-gdwarf-3 -g
+	EXTRA_DEBUG_FLAGS:=-g
+	DEBUG_FLAGS:=-gdwarf-3 $(EXTRA_DEBUG_FLAGS)
 	
-	#BASE_FLAGS=-masm=intel -march=native -Wall $(DEBUG_OPTIMIZATION_LEVEL) -g
-	#BASE_FLAGS=-masm=intel -Wall $(DEBUG_OPTIMIZATION_LEVEL) -g
-	BASE_FLAGS=-Wall $(DEBUG_OPTIMIZATION_LEVEL) -g
+	OPTIMIZATION_LEVEL:=$(DEBUG_OPTIMIZATION_LEVEL)
+	
+	# Only do profiling stuff when debugging stuff is enabled
+	EXTRA_LD_FLAGS:=$(DEBUG_FLAGS)
+	
+	DEBUG_SUFFIX:=$(ALWAYS_DEBUG_SUFFIX)
 else
-	#BASE_FLAGS=-masm=intel -march=native -Wall $(REGULAR_OPTIMIZATION_LEVEL)
-	#BASE_FLAGS=-masm=intel -Wall $(REGULAR_OPTIMIZATION_LEVEL)
-	BASE_FLAGS=-Wall $(REGULAR_OPTIMIZATION_LEVEL)
+	OPTIMIZATION_LEVEL:=$(REGULAR_OPTIMIZATION_LEVEL)
 endif
 
 
-CXX_FLAGS=-std=c++14 $(BASE_FLAGS)
-C_FLAGS=-std=c11 $(BASE_FLAGS)
-S_FLAGS=-mnaked-reg -msyntax=intel
-NS_FLAGS=-f elf64
-
-LD_FLAGS=-lm $(DEBUG_FLAGS)
-
-
-
-OBJDIR=objs
-DEPDIR=deps
-OBJDIR_TEMP=objs_temp
-
-CXX_SOURCES=$(foreach DIR,$(CXX_DIRS),$(notdir $(wildcard $(DIR)/*.cpp)))
-C_SOURCES=$(foreach DIR,$(C_DIRS),$(notdir $(wildcard $(DIR)/*.c)))
-S_SOURCES=$(foreach DIR,$(S_DIRS),$(notdir $(wildcard $(DIR)/*.s)))
-NS_SOURCES=$(foreach DIR,$(S_DIRS),$(notdir $(wildcard $(DIR)/*.nasm)))
-
-export VPATH	:=	$(foreach DIR,$(CXX_DIRS),$(CURDIR)/$(DIR)) \
-	$(foreach DIR,$(C_DIRS),$(CURDIR)/$(DIR)) \
-	$(foreach DIR,$(S_DIRS),$(CURDIR)/$(DIR)) \
-	$(foreach DIR,$(NS_DIRS),$(CURDIR)/$(DIR))
+# Compilers, assemblers, and the linker
+ifdef DO_ARM
+	PREFIX:=arm-none-eabi-
+	EXTRA_BASE_FLAGS:=-mcpu=arm7tdmi -mtune=arm7tdmi -mthumb \
+		-mthumb-interwork
+	#EXTRA_BASE_FLAGS:=-mcpu=arm7tdmi -mtune=arm7tdmi -mthumb-interwork
+	DO_ARM_SUFFIX:=$(ALWAYS_DO_ARM_SUFFIX)
+else
+	PREFIX:=
+	EXTRA_BASE_FLAGS:=
+endif
 
 
-CXX_OFILES=$(patsubst %.cpp,$(OBJDIR)/%.o,$(CXX_SOURCES))
-C_OFILES=$(patsubst %.c,$(OBJDIR)/%.o,$(C_SOURCES))
-S_OFILES=$(patsubst %.s,$(OBJDIR)/%.o,$(S_SOURCES))
-NS_OFILES=$(patsubst %.nasm,$(OBJDIR)/%.o,$(NS_SOURCES))
-OFILES=$(CXX_OFILES) $(C_OFILES) $(S_OFILES) $(NS_OFILES)
+# This is likely specific to *nix... but then again, the entire makefile is
+# probably specific to *nix!
+PROJ:=$(shell basename $(CURDIR))$(DEBUG_SUFFIX)$(DO_ARM_SUFFIX)
 
-CXX_PFILES=$(patsubst %.cpp,$(DEPDIR)/%.P,$(CXX_SOURCES))
-C_PFILES=$(patsubst %.c,$(DEPDIR)/%.P,$(C_SOURCES))
-S_PFILES=$(patsubst %.s,$(DEPDIR)/%.P,$(S_SOURCES))
-NS_PFILES=$(patsubst %.nasm,$(DEPDIR)/%.P,$(NS_SOURCES))
-PFILES=$(CXX_PFILES) $(C_PFILES) $(S_PFILES) $(NS_PFILES)
 
-CXX_OFILES_TEMP=$(patsubst %.cpp,$(OBJDIR_TEMP)/%.o,$(CXX_SOURCES))
-C_OFILES_TEMP=$(patsubst %.c,$(OBJDIR_TEMP)/%.o,$(C_SOURCES))
-S_OFILES_TEMP=$(patsubst %.s,$(OBJDIR_TEMP)/%.o,$(S_SOURCES))
-NS_OFILES_TEMP=$(patsubst %.nasm,$(OBJDIR_TEMP)/%.o,$(NS_SOURCES))
-OFILES_TEMP=$(CXX_OFILES_TEMP) $(C_OFILES_TEMP) $(S_OFILES_TEMP) $(NS_OFILES_TEMP)
+VERBOSE_ASM_FLAG:=
+#VERBOSE_ASM_FLAG:=-fverbose-asm
+
+
+
+CXX:=$(PREFIX)$(CXX)
+LD:=$(CXX)
+
+
+
+FINAL_BASE_FLAGS:=$(OPTIMIZATION_LEVEL) \
+	$(EXTRA_BASE_FLAGS) $(EXTRA_DEBUG_FLAGS)
+
+
+
+# Final compiler and linker flags
+CXX_FLAGS:=$(CXX_FLAGS) $(FINAL_BASE_FLAGS)
+LD_FLAGS:=$(LD_FLAGS) $(EXTRA_LD_FLAGS)
+
+
+
+
+# Generated directories
+OBJDIR:=objs$(DEBUG_SUFFIX)$(DO_ARM_SUFFIX)
+ASMOUTDIR:=asmouts$(DEBUG_SUFFIX)$(DO_ARM_SUFFIX)
+DEPDIR:=deps$(DEBUG_SUFFIX)$(DO_ARM_SUFFIX)
+OBJDIR_TEMP:=objs_temp$(DEBUG_SUFFIX)$(DO_ARM_SUFFIX)
+PREPROCDIR:=preprocs$(DEBUG_SUFFIX)$(DO_ARM_SUFFIX)
+
+
+# Source code files
+CXX_SOURCES:=$(foreach DIR,$(CXX_DIRS),$(notdir $(wildcard $(DIR)/*.cpp)))
+
+
+# Directories to search, specified above
+export VPATH	:=	$(foreach DIR,$(CXX_DIRS),$(CURDIR)/$(DIR))
+
+
+# Object code files
+CXX_OFILES:=$(CXX_SOURCES:%.cpp=$(OBJDIR)/%.o)
+OFILES:=$(CXX_OFILES)
+
+# Automatically-Generated Dependency Files
+CXX_PFILES:=$(CXX_SOURCES:%.cpp=$(DEPDIR)/%.P)
+PFILES:=$(CXX_PFILES)
+
+
+# This is for cleaning object files with no source.
+CXX_OFILES_TEMP:=$(CXX_SOURCES:%.cpp=$(OBJDIR_TEMP)/%.o)
+OFILES_TEMP:=$(CXX_OFILES_TEMP)
+
+
+# Assembly source code generated by $(CXX)
+CXX_ASMOUTS:=$(CXX_SOURCES:%.cpp=$(ASMOUTDIR)/%.s)
+ASMOUTS:=$(CXX_ASMOUTS)
+
+
+# Preprocessed output of only C++ files
+CXX_EFILES:=$(CXX_SOURCES:%.cpp=$(PREPROCDIR)/%.E)
+EFILES:=$(CXX_EFILES)
+
 
 
 all : all_pre $(OFILES)
 	$(LD) $(OBJDIR)/*.o -o $(PROJ) $(LD_FLAGS)
 
+# all_objs is ENTIRELY optional.
 all_objs : all_pre $(OFILES)
+	@#
+
+do_asmouts : all_pre all_pre_asmout $(ASMOUTS)
 	@#
 
 all_pre :
 	mkdir -p $(OBJDIR) $(DEPDIR)
 
+all_pre_asmout :
+	mkdir -p $(ASMOUTDIR)
+
+# This sed script is basically a hack.
+sed_script:=$(shell echo "sed -e 's/\#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' -e '/^$$/ d' -e 's/$$/ :/'")
+
+
+
+
+
+
+
+
+
+# Here's where things get really messy.
 $(CXX_OFILES) : $(OBJDIR)/%.o : %.cpp
 	@#echo "Generating dependency information for "$@"...."
 	@echo $@" was updated or has no object file.  (Re)Compiling...."
 	$(CXX) $(CXX_FLAGS) -MMD -c $< -o $@
 	@cp $(OBJDIR)/$*.d $(DEPDIR)/$*.P
-	@sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-		-e '/^$$/ d' -e 's/$$/ :/' < $(OBJDIR)/$*.d >> $(DEPDIR)/$*.P
+	@$(sed_script) < $(OBJDIR)/$*.d >> $(DEPDIR)/$*.P
 	@rm -f $(OBJDIR)/$*.d
 
-$(C_OFILES) : $(OBJDIR)/%.o : %.c
-	@#echo "Generating dependency information for "$@"...."
-	@echo $@" was updated or has no object file.  (Re)Compiling...."
-	$(CC) $(C_FLAGS) -MMD -c $< -o $@
-	@cp $(OBJDIR)/$*.d $(DEPDIR)/$*.P
-	@sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-		-e '/^$$/ d' -e 's/$$/ :/' < $(OBJDIR)/$*.d >> $(DEPDIR)/$*.P
-	@rm -f $(OBJDIR)/$*.d
-	
-# For NASM sources, the dependency generation is somewhat different from
-# that of C/C++ sources.
-$(NS_OFILES) : $(OBJDIR)/%.o : %.nasm
-	@#echo "Generating dependency information for "$@"...."
-	@echo $@" was updated or has no object file.  (Re)Assembling...."
-	$(NS) $(NS_FLAGS) $< -o $@ -MD $(DEPDIR)/$*.P
-	
+# Here we have stuff for outputting assembly source code instead of an object file.
+$(CXX_ASMOUTS) : $(ASMOUTDIR)/%.s : %.cpp
+	@#$(CXX) $(CXX_FLAGS) -MMD -S -fverbose-asm $< -o $@
+	@#$(CXX) $(CXX_FLAGS) -MMD -S $< -o $@
+	$(CXX) $(CXX_FLAGS) -MMD -S $(VERBOSE_ASM_FLAG) $< -o $@
+	@cp $(ASMOUTDIR)/$*.d $(DEPDIR)/$*.P
+	@$(sed_script) < $(ASMOUTDIR)/$*.d >> $(DEPDIR)/$*.P
+	@rm -f $(ASMOUTDIR)/$*.d
+
 -include $(PFILES)
+
+
+
+only_preprocess : only_preprocess_pre $(EFILES)
+	@#
+
+only_preprocess_pre : 
+	mkdir -p $(PREPROCDIR)
+
+
+$(CXX_EFILES) : $(PREPROCDIR)/%.E : %.cpp
+	$(CXX) $(CXX_FLAGS) -E $< -o $@
+
 
 
 #¯\(°_o)/¯
 
 .PHONY : clean
 clean :
-	rm -rfv $(OBJDIR) $(DEPDIR) $(PROJ) tags *.taghl
+	rm -rfv $(OBJDIR) $(DEPDIR) $(ASMOUTDIR) $(PREPROCDIR) $(PROJ) tags *.taghl gmon.out
 
+
+# There is little point in using this
 .PHONY : clean_objs_with_no_source
 clean_objs_with_no_source :
 	@mkdir -p $(OBJDIR_TEMP)
@@ -158,13 +242,4 @@ clean_objs_with_no_source :
 	
 	
 	@#rm -rfv $(OBJDIR_TEMP)
-
-
-
-# Note that -j8 is used on my laptop because its CPU is quad core with
-# hyperthreading.
-.PHONY : check_build
-check_build :
-	make clean_objs_with_no_source && make -j8
-
 
