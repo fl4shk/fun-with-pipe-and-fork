@@ -27,7 +27,10 @@ typedef unsigned int uint;
 #include <iostream>
 #include <string>
 #include <array>
-using namespace std;
+using std::cout;
+using std::cin;
+using std::cerr;
+using std::endl;
 
 
 #include <stdio.h>
@@ -39,10 +42,10 @@ using namespace std;
 class pipe_fd_arr
 {
 public:		// variables
-	static constexpr u32 output_index = 0, input_index = 1;
+	static constexpr size_t output_index = 0, input_index = 1;
 	
-	static constexpr u32 arr_size = 2;
-	array< int, arr_size > the_array;
+	static constexpr size_t arr_size = 2;
+	std::array< int, arr_size > the_array;
 	
 public:		// functions
 	inline void make_pipe()
@@ -57,7 +60,7 @@ class pipe_master_base
 public:		// constants
 	//static constexpr size_t pipe_fd_size = 2;
 	//static constexpr size_t fd_read_index = 0, fd_write_index = 1;
-	static constexpr u32 output_index = pipe_fd_arr::output_index,
+	static constexpr size_t output_index = pipe_fd_arr::output_index,
 		input_index = pipe_fd_arr::input_index;
 	
 private:		// variables
@@ -68,6 +71,9 @@ private:		// variables
 	
 public:		// functions
 	void run();
+	virtual ~pipe_master_base()
+	{
+	}
 	
 	
 protected:		// functions
@@ -89,8 +95,9 @@ protected:		// functions
 	}
 	
 	
-	virtual void run_child();
-	virtual void run_parent();
+	// These are intended to be overrided in derived classes
+	virtual void run_child() = 0;
+	virtual void run_parent() = 0;
 	
 private:		// functions
 	inline pid_t& some_pid()
@@ -108,15 +115,6 @@ private:		// functions
 	}
 	
 };
-
-
-void child_main( pipe_fd_arr& parent_write_fd_arr, 
-	pipe_fd_arr& parent_read_fd_arr );
-
-void parent_main( pipe_fd_arr& parent_write_fd_arr,
-	pipe_fd_arr& parent_read_fd_arr );
-
-
 
 void pipe_master_base::run()
 {
@@ -152,28 +150,37 @@ void pipe_master_base::run()
 	}
 }
 
+class pipe_master_example : public pipe_master_base
+{
+protected:		// functions
+	virtual void run_child();
+	virtual void run_parent();
+	
+	
+};
 
-void pipe_master_base::run_child()
+
+void pipe_master_example::run_child()
 {
 	static constexpr size_t buf_size = 80;
 	char buf[buf_size];
 	
-	const string to_send = "Hello from child!\n";
+	const std::string to_send = "Hello from child!\n";
 	
 	write( child_write_fd(), to_send.c_str(), to_send.size() + 1 );
 	
-	int num_read_bytes = read( child_read_fd(), buf, buf_size );
+	const ssize_t num_read_bytes = read( child_read_fd(), buf, buf_size );
 	
 	cout << buf;
 }
-void pipe_master_base::run_parent()
+void pipe_master_example::run_parent()
 {
 	static constexpr size_t buf_size = 80;
 	char buf[buf_size];
 	
-	string to_send = "Hello from parent!\n";
+	const std::string to_send = "Hello from parent!\n";
 	
-	int num_read_bytes = read( parent_read_fd(), buf, buf_size );
+	const ssize_t num_read_bytes = read( parent_read_fd(), buf, buf_size );
 	
 	cout << buf;
 	
@@ -183,9 +190,8 @@ void pipe_master_base::run_parent()
 
 int main( int argc, char** argv )
 {
-	pipe_master_base pm;
+	pipe_master_example pm;
 	pm.run();
-	
 	
 	return 0;
 }
